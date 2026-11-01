@@ -4,6 +4,16 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
   <meta name="theme-color" content="#160b2b">
+
+  <!-- MindAR's Three.js build imports the bare module name "three".
+       This import map tells the browser exactly where to load it from. -->
+  <script type="importmap">
+    {
+      "imports": {
+        "three": "https://cdn.jsdelivr.net/npm/three@0.158.0/build/three.module.js"
+      }
+    }
+  </script>
   <title>AU Freshers Party — AR Invitation</title>
 
   <style>
