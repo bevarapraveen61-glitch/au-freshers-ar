@@ -2,105 +2,262 @@
 <html lang="en">
 <head>
   <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
   <meta name="theme-color" content="#160b2b">
-  <title>AU Freshers AR Experience</title>
+  <title>AU Freshers Party — AR Invitation</title>
+
   <style>
-    :root { color-scheme: dark; --gold:#f7d98b; --ink:#160b2b; }
+    :root { color-scheme: dark; --gold:#f7d98b; }
     * { box-sizing: border-box; }
-    html, body { width:100%; height:100%; margin:0; overflow:hidden; background:#080611; font-family:system-ui,-apple-system,Segoe UI,sans-serif; }
-    #ar-container { position:fixed; inset:0; width:100%; height:100%; overflow:hidden; background:#080611; }
-    /* MindAR creates a video and a WebGL canvas. Both must cover the SAME viewport. */
-    #ar-container video, #ar-container canvas {
-      position:absolute !important; inset:0 !important; width:100% !important; height:100% !important;
-      object-fit:cover !important; transform:none !important;
+    html, body {
+      width:100%; height:100%; margin:0; overflow:hidden;
+      background:#080611; font-family:system-ui,-apple-system,Segoe UI,sans-serif;
     }
-    #ar-container video { z-index:0 !important; }
-    #ar-container canvas { z-index:1 !important; }
-    #shade { position:fixed; inset:0; z-index:2; pointer-events:none;
-      background:linear-gradient(180deg,rgba(10,5,22,.28),transparent 28%,transparent 72%,rgba(10,5,22,.5)); }
-    #top { position:fixed; z-index:4; top:env(safe-area-inset-top,12px); left:0; right:0;
-      padding:14px 16px; text-align:center; pointer-events:none; }
-    #top h1 { margin:0; color:var(--gold); font-size:clamp(18px,5vw,25px); letter-spacing:.04em;
-      text-shadow:0 2px 10px #000; }
-    #status { display:inline-block; margin-top:7px; padding:6px 11px; border-radius:20px;
-      color:#fff; background:rgba(15,8,28,.72); font-size:12px; }
-    #panel { position:fixed; z-index:5; inset:0; display:flex; align-items:center; justify-content:center;
-      padding:24px; background:radial-gradient(ellipse at center,#3b205b 0%,#160b2b 65%,#080611 100%); }
-    #card { width:min(440px,100%); padding:26px 22px; border:1px solid rgba(247,217,139,.55);
-      border-radius:22px; background:rgba(18,10,32,.92); text-align:center; box-shadow:0 18px 60px #0009; }
-    #card h2 { color:var(--gold); margin:0 0 10px; font-size:25px; }
+    #ar-container {
+      position:fixed; inset:0; width:100%; height:100%;
+      overflow:hidden; background:#080611; z-index:1;
+    }
+    /* MindAR inserts its camera video and WebGL canvas into this container.
+       Keep both aligned to the same full-screen viewport. */
+    #ar-container video,
+    #ar-container canvas {
+      position:absolute !important;
+      inset:0 !important;
+      width:100% !important;
+      height:100% !important;
+      max-width:none !important;
+      max-height:none !important;
+      object-fit:cover !important;
+      margin:0 !important;
+    }
+    #ar-container video { z-index:1 !important; }
+    #ar-container canvas { z-index:2 !important; pointer-events:none !important; }
+
+    #shade {
+      position:fixed; inset:0; z-index:3; pointer-events:none;
+      background:linear-gradient(180deg,rgba(10,5,22,.22),transparent 25%,transparent 75%,rgba(10,5,22,.32));
+    }
+    #top {
+      position:fixed; z-index:4; top:env(safe-area-inset-top, 0px);
+      left:0; right:0; padding:14px 16px; text-align:center; pointer-events:none;
+    }
+    #top h1 {
+      margin:0; color:var(--gold); font-size:clamp(18px,5vw,25px);
+      letter-spacing:.035em; text-shadow:0 2px 10px #000;
+    }
+    #status {
+      display:inline-block; margin-top:7px; padding:6px 11px;
+      border-radius:20px; color:#fff; background:rgba(15,8,28,.76); font-size:12px;
+    }
+
+    #welcome {
+      position:fixed; inset:0; z-index:10; display:flex;
+      align-items:center; justify-content:center; padding:22px;
+      background:radial-gradient(ellipse at center,#3b205b 0%,#160b2b 65%,#080611 100%);
+    }
+    #card {
+      width:min(440px,100%); padding:26px 22px;
+      border:1px solid rgba(247,217,139,.55); border-radius:22px;
+      background:rgba(18,10,32,.96); text-align:center;
+      box-shadow:0 18px 60px #0009;
+    }
+    #card h2 { color:var(--gold); margin:0 0 10px; font-size:26px; }
     #card p { color:#eee5f7; line-height:1.55; font-size:14px; }
-    button { border:0; border-radius:999px; padding:14px 25px; margin-top:10px; color:#24152e;
-      background:linear-gradient(135deg,#fff0bd,#e6b957); font-weight:750; font-size:16px; cursor:pointer; }
+    #start, #stop {
+      border:0; border-radius:999px; padding:14px 25px;
+      color:#24152e; background:linear-gradient(135deg,#fff0bd,#e6b957);
+      font-weight:750; font-size:16px; cursor:pointer;
+    }
+    #start:disabled { opacity:.65; }
     #hint { color:#d9cde7; font-size:12px !important; margin-top:14px; }
-    #stop { position:fixed; z-index:6; right:14px; bottom:calc(16px + env(safe-area-inset-bottom,0px));
-      padding:10px 16px; font-size:13px; display:none; }
-    #error { color:#ffd1d1; white-space:pre-wrap; font-size:12px; margin-top:12px; }
-    .spark { position:fixed; z-index:3; pointer-events:none; color:#ffe6a4; opacity:.75;
-      animation:float 7s linear infinite; text-shadow:0 0 12px #ffd36b; }
-    @keyframes float { from { transform:translateY(15vh) rotate(0); opacity:0 } 15%{opacity:.8}
-      to { transform:translateY(-110vh) rotate(300deg); opacity:0 } }
+    #error {
+      color:#ffd1d1; white-space:pre-wrap; overflow-wrap:anywhere;
+      font-size:12px; line-height:1.45; margin-top:12px;
+    }
+    #stop {
+      position:fixed; z-index:6; right:14px;
+      bottom:calc(16px + env(safe-area-inset-bottom,0px));
+      padding:10px 16px; font-size:13px; display:none;
+    }
+    #target-message {
+      position:fixed; z-index:5; left:12px; right:12px;
+      bottom:calc(18px + env(safe-area-inset-bottom,0px));
+      color:#fff; text-align:center; font-size:13px;
+      text-shadow:0 2px 6px #000; pointer-events:none;
+    }
   </style>
 </head>
 <body>
   <div id="ar-container" aria-label="Live camera view"></div>
   <div id="shade"></div>
+
   <header id="top">
-    <h1>AU Freshers AR Experience</h1>
+    <h1>AU Freshers Party AR Experience</h1>
     <div id="status">Camera has not started</div>
   </header>
 
-  <section id="panel">
+  <section id="welcome">
     <div id="card">
       <h2>Welcome!</h2>
-      <p>Start the camera, then point it at the printed invitation image to view the AR experience.</p>
+      <p>Start the camera, allow camera access, then point it at the printed Mathematics Department invitation to see the AR flowers.</p>
       <button id="start" type="button">Start AR Experience</button>
-      <p id="hint">Use HTTPS, allow camera permission, and use the rear camera when prompted.</p>
-      <div id="error" role="alert"></div>
+      <p id="hint">Use the HTTPS GitHub Pages link and allow Chrome to use the rear camera.</p>
+      <div id="error" role="alert" aria-live="polite"></div>
     </div>
   </section>
+
+  <div id="target-message">Point the camera at the full invitation card</div>
   <button id="stop" type="button">Stop camera</button>
 
   <script type="module">
-    import * as THREE from "https://cdn.jsdelivr.net/npm/three@0.158.0/build/three.module.js";
-    import { MindARThree } from "https://cdn.jsdelivr.net/npm/mind-ar@1.2.5/dist/mindar-image-three.prod.js";
-
-    const container = document.querySelector("#ar-container");
-    const panel = document.querySelector("#panel");
-    const statusEl = document.querySelector("#status");
-    const errorEl = document.querySelector("#error");
+    const welcome = document.querySelector("#welcome");
     const startBtn = document.querySelector("#start");
     const stopBtn = document.querySelector("#stop");
+    const statusEl = document.querySelector("#status");
+    const errorEl = document.querySelector("#error");
+    const targetMessage = document.querySelector("#target-message");
+    const container = document.querySelector("#ar-container");
+
+    let THREE = null;
+    let MindARThree = null;
     let mindar = null;
     let started = false;
+    let busy = false;
+    let resizeTimer = null;
 
-    function status(message) { statusEl.textContent = message; }
+    function setStatus(message) { statusEl.textContent = message; }
     function showError(message) {
       errorEl.textContent = message;
-      status("Camera / AR could not start");
-      panel.style.display = "flex";
+      setStatus("Camera / AR could not start");
+      welcome.style.display = "flex";
       startBtn.disabled = false;
       startBtn.textContent = "Try again";
+      busy = false;
+    }
+
+    function addFlower(group, x, y, scale, petalColor, centerColor) {
+      const flower = new THREE.Group();
+      flower.position.set(x, y, 0.08);
+      flower.scale.setScalar(scale);
+      group.add(flower);
+
+      const stemMaterial = new THREE.MeshBasicMaterial({ color: 0x368b43 });
+      const stem = new THREE.Mesh(
+        new THREE.CylinderGeometry(0.012, 0.018, 0.55, 10),
+        stemMaterial
+      );
+      stem.position.set(0, -0.34, 0);
+      flower.add(stem);
+
+      const leafMaterial = new THREE.MeshBasicMaterial({ color: 0x49a85a });
+      const leaf = new THREE.Mesh(new THREE.SphereGeometry(0.12, 16, 12), leafMaterial);
+      leaf.scale.set(1.8, 0.45, 0.35);
+      leaf.position.set(0.09, -0.35, 0.025);
+      leaf.rotation.z = 0.45;
+      flower.add(leaf);
+
+      const petalMaterial = new THREE.MeshBasicMaterial({
+        color: petalColor, side: THREE.DoubleSide
+      });
+      for (let i = 0; i < 5; i++) {
+        const angle = (i / 5) * Math.PI * 2;
+        const petal = new THREE.Mesh(
+          new THREE.SphereGeometry(0.105, 16, 12),
+          petalMaterial
+        );
+        petal.scale.set(0.72, 1.45, 0.48);
+        petal.position.set(Math.cos(angle) * 0.13, Math.sin(angle) * 0.13, 0.02);
+        petal.rotation.z = angle - Math.PI / 2;
+        flower.add(petal);
+      }
+
+      const center = new THREE.Mesh(
+        new THREE.SphereGeometry(0.085, 18, 14),
+        new THREE.MeshBasicMaterial({ color: centerColor })
+      );
+      center.position.z = 0.07;
+      flower.add(center);
+      return flower;
+    }
+
+    function addDecorations(group) {
+      const pinkFlower = addFlower(group, -0.29, 0.20, 0.85, 0xff70aa, 0xf7bd35);
+      const whiteFlower = addFlower(group, 0.30, 0.17, 0.78, 0xfff1f7, 0xffd54e);
+
+      const petalMaterial = new THREE.MeshBasicMaterial({
+        color: 0xff83b4, side: THREE.DoubleSide
+      });
+      const petals = [];
+      const positions = [
+        [-0.18, -0.17, 0.15], [0.13, -0.23, 0.17],
+        [0.02, 0.29, 0.14], [0.36, -0.07, 0.15]
+      ];
+      positions.forEach((p, i) => {
+        const petal = new THREE.Mesh(
+          new THREE.SphereGeometry(0.045, 12, 10),
+          petalMaterial
+        );
+        petal.scale.set(0.8, 1.6, 0.35);
+        petal.position.set(p[0], p[1], p[2]);
+        petal.userData.baseY = p[1];
+        petal.userData.phase = i * 1.4;
+        group.add(petal);
+        petals.push(petal);
+      });
+
+      const ring = new THREE.Mesh(
+        new THREE.RingGeometry(0.53, 0.545, 64),
+        new THREE.MeshBasicMaterial({
+          color: 0xf7d98b, transparent: true, opacity: 0.8,
+          side: THREE.DoubleSide
+        })
+      );
+      ring.position.z = 0.04;
+      group.add(ring);
+
+      return { pinkFlower, whiteFlower, petals, ring };
+    }
+
+    async function loadLibraries() {
+      if (THREE && MindARThree) return;
+      setStatus("Loading AR engine…");
+      const threeModule = await import("https://cdn.jsdelivr.net/npm/three@0.158.0/build/three.module.js");
+      const mindarModule = await import("https://cdn.jsdelivr.net/npm/mind-ar@1.2.5/dist/mindar-image-three.prod.js");
+      THREE = threeModule;
+      MindARThree = mindarModule.MindARThree;
+      if (!MindARThree) throw new Error("MindAR library did not load. Check your internet connection and reload.");
     }
 
     async function startAR() {
-      if (started) return;
+      if (started || busy) return;
+      busy = true;
       startBtn.disabled = true;
-      startBtn.textContent = "Starting camera…";
+      startBtn.textContent = "Starting…";
       errorEl.textContent = "";
-      status("Requesting camera permission…");
+      setStatus("Checking camera…");
 
-      if (!window.isSecureContext) {
-        showError("Camera access requires HTTPS. Open this website using its https:// GitHub Pages address.");
+      if (!window.isSecureContext || !location.protocol.startsWith("https")) {
+        showError("Camera access requires HTTPS. Open your GitHub Pages website using its https:// address.");
         return;
       }
-      if (!navigator.mediaDevices?.getUserMedia) {
-        showError("This browser does not support camera access. Try the latest Chrome browser.");
+      if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+        showError("This browser does not provide camera access. Please use an updated version of Chrome.");
         return;
       }
 
       try {
+        await loadLibraries();
+
+        // Confirm camera permission/device access before hiding the welcome screen.
+        // MindAR will open its own camera stream after this browser permission check.
+        setStatus("Requesting rear camera permission…");
+        const permissionStream = await navigator.mediaDevices.getUserMedia({
+          audio: false,
+          video: { facingMode: { ideal: "environment" } }
+        });
+        permissionStream.getTracks().forEach(track => track.stop());
+
+        setStatus("Preparing invitation target…");
         mindar = new MindARThree({
           container,
           imageTargetSrc: "./targets.mind",
@@ -113,92 +270,120 @@
         const { renderer, scene, camera } = mindar;
         renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2));
         renderer.setSize(window.innerWidth, window.innerHeight);
-        renderer.outputColorSpace = THREE.SRGBColorSpace;
+        renderer.setClearColor(0x000000, 0);
 
         const anchor = mindar.addAnchor(0);
-        const group = new THREE.Group();
-        anchor.group.add(group);
+        const decorations = addDecorations(anchor.group);
 
-        // Display the invitation image when the target in targets.mind is recognised.
-        const invitationTexture = await new THREE.TextureLoader().loadAsync("./freshers-invitation.png");
-        invitationTexture.colorSpace = THREE.SRGBColorSpace;
-        const image = new THREE.Mesh(
-          new THREE.PlaneGeometry(1, 1),
-          new THREE.MeshBasicMaterial({ map: invitationTexture, transparent: true, side: THREE.DoubleSide })
-        );
-        image.scale.set(1, 1, 1);
-        image.position.set(0, 0, 0.01);
-        group.add(image);
+        anchor.onTargetFound = () => {
+          targetMessage.textContent = "Invitation detected! Enjoy the AR flowers 🌸";
+          setStatus("Invitation detected — AR is active");
+        };
+        anchor.onTargetLost = () => {
+          targetMessage.textContent = "Point the camera at the full invitation card";
+          setStatus("Looking for the invitation…");
+        };
 
-        // A subtle decorative ring gives a visible AR response without blocking the camera.
-        const ring = new THREE.Mesh(
-          new THREE.RingGeometry(0.53, 0.56, 64),
-          new THREE.MeshBasicMaterial({ color: 0xf7d98b, transparent: true, opacity: 0.9, side: THREE.DoubleSide })
-        );
-        ring.position.z = 0.015;
-        group.add(ring);
-
-        anchor.onTargetFound = () => status("Invitation detected — AR is active");
-        anchor.onTargetLost = () => status("Point the camera at the invitation");
-
-        status("Starting camera…");
+        setStatus("Starting camera…");
         await mindar.start();
-        started = true;
-        panel.style.display = "none";
-        stopBtn.style.display = "block";
-        status("Point the camera at the invitation");
 
+        // Only remove the welcome panel after MindAR reports that startup succeeded.
+        started = true;
+        busy = false;
+        welcome.style.display = "none";
+        stopBtn.style.display = "block";
+        setStatus("Point the camera at the invitation");
+
+        let clock = 0;
         renderer.setAnimationLoop(() => {
-          ring.rotation.z += 0.003;
+          clock += 0.016;
+          decorations.ring.rotation.z += 0.003;
+          decorations.pinkFlower.rotation.z = Math.sin(clock * 1.2) * 0.06;
+          decorations.whiteFlower.rotation.z = Math.sin(clock * 1.1 + 1) * 0.06;
+          decorations.petals.forEach(p => {
+            p.position.y = p.userData.baseY + Math.sin(clock * 1.5 + p.userData.phase) * 0.07;
+          });
           renderer.render(scene, camera);
         });
 
-        // Keep the camera and canvas aligned to the viewport after rotation/resizing.
-        window.addEventListener("resize", resize);
-        window.addEventListener("orientationchange", () => setTimeout(resize, 250));
+        window.addEventListener("resize", onResize);
+        window.addEventListener("orientationchange", onOrientationChange);
       } catch (err) {
-        console.error(err);
+        console.error("AR startup error:", err);
         if (mindar) {
-          try { await mindar.stop(); } catch (_) {}
+          try {
+            mindar.renderer?.setAnimationLoop(null);
+            await mindar.stop();
+          } catch (stopError) {
+            console.warn("Camera cleanup:", stopError);
+          }
           mindar = null;
         }
         container.replaceChildren();
         started = false;
+
         let message = err?.message || String(err);
-        if (err?.name === "NotAllowedError") message = "Camera permission was denied. Allow camera access in Chrome site settings, then try again.";
-        else if (err?.name === "NotFoundError") message = "No camera was found on this device.";
-        else if (err?.name === "NotReadableError") message = "The camera may be in use by another app. Close other camera apps and try again.";
-        else if (message.includes("targets.mind")) message = "Could not load targets.mind. Check that targets.mind is uploaded beside index.html in your GitHub repository.";
-        else if (message.includes("freshers-invitation")) message = "Could not load freshers-invitation.png. Check the exact filename and upload it beside index.html.";
+        if (err?.name === "NotAllowedError" || err?.name === "PermissionDeniedError") {
+          message = "Camera permission was denied. In Android Settings, allow Camera for Chrome, then allow camera access for this website and try again.";
+        } else if (err?.name === "NotFoundError" || err?.name === "DevicesNotFoundError") {
+          message = "No camera was found on this device.";
+        } else if (err?.name === "NotReadableError" || err?.name === "TrackStartError") {
+          message = "The camera may be in use by another app. Close Camera, WhatsApp or other apps using the camera, then try again.";
+        } else if (message.toLowerCase().includes("targets.mind")) {
+          message = "Could not load targets.mind. Check that targets.mind is uploaded beside index.html in your GitHub repository, with the exact same spelling.";
+        }
         showError(message);
       }
     }
 
-    function resize() {
+    function onResize() {
       if (!mindar) return;
-      const renderer = mindar.renderer;
-      renderer.setSize(window.innerWidth, window.innerHeight);
-      renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2));
+      clearTimeout(resizeTimer);
+      resizeTimer = setTimeout(() => {
+        if (!mindar) return;
+        mindar.renderer.setSize(window.innerWidth, window.innerHeight);
+        mindar.renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2));
+      }, 150);
+    }
+    function onOrientationChange() {
+      setTimeout(onResize, 300);
     }
 
     async function stopAR() {
       if (!mindar) return;
+      setStatus("Stopping camera…");
       try {
         mindar.renderer.setAnimationLoop(null);
         await mindar.stop();
-      } catch (err) { console.warn(err); }
+      } catch (err) {
+        console.warn("Error while stopping AR:", err);
+      }
       mindar = null;
       started = false;
+      busy = false;
       container.replaceChildren();
       stopBtn.style.display = "none";
-      panel.style.display = "flex";
+      welcome.style.display = "flex";
       startBtn.disabled = false;
       startBtn.textContent = "Start AR Experience";
-      status("Camera stopped");
+      setStatus("Camera stopped");
+      targetMessage.textContent = "Point the camera at the full invitation card";
+      window.removeEventListener("resize", onResize);
+      window.removeEventListener("orientationchange", onOrientationChange);
     }
 
     startBtn.addEventListener("click", startAR);
     stopBtn.addEventListener("click", stopAR);
+
+    // A failed CDN import or other module error should never leave a blank page.
+    window.addEventListener("error", event => {
+      console.error(event.error || event.message);
+      if (!started && event.message) showError("Page error: " + event.message);
+    });
+    window.addEventListener("unhandledrejection", event => {
+      console.error(event.reason);
+      if (!started) showError("AR loading error: " + (event.reason?.message || String(event.reason)));
+    });
   </script>
 </body>
 </html>
