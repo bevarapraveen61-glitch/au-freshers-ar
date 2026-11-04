@@ -1,0 +1,364 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
+<meta name="theme-color" content="#160b2b">
+<title>AU Mathematics Department — AR Invitation</title>
+
+<script type="importmap">
+{
+  "imports": {
+    "three": "https://cdn.jsdelivr.net/npm/three@0.158.0/build/three.module.js",
+    "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.158.0/examples/jsm/"
+  }
+}
+</script>
+
+<style>
+:root { --gold:#f7d98b; --maroon:#570d35; --navy:#101e4b; }
+* { box-sizing:border-box; }
+html,body { width:100%;height:100%;margin:0;overflow:hidden;background:#080611;color:white;font-family:system-ui,-apple-system,"Segoe UI",sans-serif; }
+#ar-container { position:fixed;inset:0;z-index:1;overflow:hidden;background:#080611; }
+#ar-container video,#ar-container canvas { position:absolute!important;inset:0!important;width:100%!important;height:100%!important;max-width:none!important;max-height:none!important;object-fit:cover!important;margin:0!important; }
+#ar-container video { z-index:1!important; }
+#ar-container canvas { z-index:2!important;pointer-events:none!important;background:transparent!important; }
+#shade { position:fixed;inset:0;z-index:3;pointer-events:none;background:linear-gradient(180deg,#08061155,transparent 25%,transparent 75%,#08061166); }
+#header { position:fixed;z-index:5;top:env(safe-area-inset-top,0px);left:0;right:0;padding:12px;text-align:center;pointer-events:none;display:none; }
+#header h1 { margin:0;color:var(--gold);font-size:clamp(17px,5vw,24px);text-shadow:0 2px 10px #000; }
+#status { display:inline-block;margin-top:7px;padding:6px 11px;border-radius:20px;background:#0f081ccc;font-size:12px; }
+#welcome {
+ position:fixed;inset:0;z-index:10;display:flex;align-items:center;justify-content:center;
+ overflow:hidden;padding:14px;
+ background: #160b2b url("./department-scene.png") center center / cover no-repeat;
+}
+#math-background { position:absolute;inset:0;z-index:2;overflow:hidden;pointer-events:none;color:#f7d98b; }
+.math-eq { position:absolute;width:19%;max-width:150px;white-space:normal;text-align:center;color:#f5dfad;font-family:Georgia,serif;font-weight:600;font-size:clamp(12px,3vw,20px);line-height:1.45;text-shadow:0 2px 8px #160b2b,0 0 12px #b58cff;animation:floatEq 7s ease-in-out infinite alternate; }
+.math-eq.gold { color:#ffdb82; }
+.eq1{top:17%;left:1%}.eq2{top:27%;right:1%}.eq3{top:42%;left:1%}.eq4{top:52%;right:1%}.eq5{bottom:18%;left:1%}.eq6{bottom:12%;right:1%}
+.eq7{top:7%;left:4%}.eq8{top:8%;right:4%}
+@keyframes floatEq { to{transform:translateY(-9px) rotate(2deg)} }
+.math-diagram { position:absolute;width:76px;height:76px;right:4%;top:38%;border:1px solid #f7d98b99;border-radius:50%;opacity:.55; }
+.math-diagram:before,.math-diagram:after { content:"";position:absolute;left:50%;top:0;height:100%;border-left:1px solid #f7d98b;transform:rotate(45deg); }
+.math-diagram:after{transform:rotate(-45deg)}
+#brand { position:absolute;z-index:4;top:calc(12px + env(safe-area-inset-top,0px));left:5%;right:5%;text-align:center;color:#ffe3a4;text-shadow:0 2px 10px #000; }
+#brand .university { font-size:clamp(10px,2.8vw,14px);letter-spacing:.16em;font-weight:800; }
+#brand .department { margin-top:5px;font-size:clamp(14px,4vw,20px);font-weight:750; }
+#department-photo {
+ position:absolute;z-index:1;top:21%;left:50%;transform:translateX(-50%);
+ width:76%;height:39%;max-width:560px;max-height:none;object-fit:cover;object-position:center 48%;
+ border:3px solid #e5bd70;border-radius:17px;box-shadow:0 0 20px #d5a84f,0 0 45px #672c85;
+}
+#photo-overlay { position:absolute;z-index:1;top:21%;left:12%;width:76%;height:39%;border-radius:17px;background:linear-gradient(180deg,#160b2b22,#160b2b33);pointer-events:none; }
+#card {
+ position:absolute;z-index:6;left:50%;bottom:calc(5% + env(safe-area-inset-bottom,0px));top:auto;transform:translateX(-50%);
+ width:min(78%,380px);padding:13px 14px;border:2px solid #f1cc78;border-radius:19px;
+ background:linear-gradient(145deg,rgba(49,12,61,.88),rgba(10,22,58,.90));
+ backdrop-filter:blur(7px);-webkit-backdrop-filter:blur(7px);text-align:center;
+ box-shadow:0 0 20px rgba(213,168,79,.48),0 10px 30px #000b;
+}
+#card h2 { margin:0 0 7px;color:#ffdc91;font-size:clamp(22px,6vw,29px);text-shadow:0 0 15px #f3bb52; }
+#card p { margin:6px 0;color:#fff2dc;font-size:14px;line-height:1.4; }
+button { border:0;border-radius:999px;padding:14px 25px;margin-top:9px;color:#24152e;background:linear-gradient(135deg,#fff0bd,#e6b957);font-weight:800;font-size:16px;cursor:pointer; }
+button:disabled{opacity:.65;cursor:wait}
+#start { width:95%;padding:12px 18px;margin-top:7px;font-size:15px;box-shadow:0 0 20px #e6b95788; }
+#hint { color:#d9cde7!important;font-size:11px!important; }
+#error { display:none;color:#ffd1d1;white-space:pre-wrap;overflow-wrap:anywhere;font-size:12px;line-height:1.45;margin-top:10px; }
+#stop { position:fixed;z-index:6;right:14px;bottom:calc(16px + env(safe-area-inset-bottom,0px));padding:10px 16px;font-size:13px;display:none; }
+#target-message { position:fixed;z-index:5;left:12px;right:12px;bottom:calc(18px + env(safe-area-inset-bottom,0px));color:#fff;text-align:center;font-size:13px;text-shadow:0 2px 6px #000;pointer-events:none;display:none; }
+
+#sky-overlay { position:absolute;inset:0;z-index:1;pointer-events:none;background:linear-gradient(180deg,rgba(8,5,20,.12),rgba(8,5,20,.04) 48%,rgba(8,5,20,.38)); }
+#sky-overlay { position:absolute;inset:0;z-index:1;pointer-events:none;background:linear-gradient(180deg,rgba(8,5,20,.12),rgba(8,5,20,.04) 48%,rgba(8,5,20,.38)); }
+
+#falling-layer {
+ position:absolute;inset:0;z-index:4;overflow:hidden;pointer-events:none;
+ transform:translate3d(0,0,0);
+ transition:transform 90ms ease-out;
+ will-change:transform;
+}
+.fall {
+ position:absolute;left:var(--left);top:-12%;
+ display:block;line-height:1;
+ animation:fallFromSky var(--duration) linear var(--delay) infinite;
+ animation-play-state:running!important;
+ will-change:transform,opacity;
+ filter:drop-shadow(0 2px 5px rgba(10,5,25,.8));
+}
+.fall.flower {
+ font-size:clamp(22px,5.4vw,36px);
+}
+.fall.equation {
+ color:#fff0b8;font-family:Georgia,"Times New Roman",serif;
+ font-size:clamp(15px,3.7vw,25px);font-weight:700;
+ text-shadow:0 2px 7px #160b2b,0 0 12px #d8a84e;
+ white-space:nowrap;
+}
+.fall.number {
+ color:#ffe19a;font-family:Georgia,serif;
+ font-size:clamp(20px,4.8vw,31px);font-weight:800;
+ text-shadow:0 2px 8px #160b2b,0 0 14px #e6b957;
+}
+@keyframes fallFromSky {
+ 0% { transform:translate3d(-10px,-8vh,0) rotate(-25deg) scale(.75);opacity:0; }
+ 8% { opacity:1; }
+ 50% { transform:translate3d(30px,52vh,0) rotate(190deg) scale(1.08);opacity:1; }
+ 92% { opacity:.95; }
+ 100% { transform:translate3d(-24px,115vh,0) rotate(390deg) scale(.82);opacity:0; }
+}
+
+@media(max-height:700px) {
+ #department-photo,#photo-overlay { top:19%;height:34%; }
+ #card { bottom:calc(3% + env(safe-area-inset-bottom,0px));padding:11px 12px;width:min(82%,360px); }
+ #card p { font-size:13px;margin:5px 0; }
+ #brand { top:calc(7px + env(safe-area-inset-top,0px)); }
+ .eq3,.eq4,.eq7,.eq8 { display:none; }
+}
+@media(max-width:360px) { .math-eq{font-size:11px;width:18%} #department-photo{width:73%} #card{width:84%} }
+@media(prefers-reduced-motion:reduce){.math-eq{animation:none}}
+</style>
+</head>
+<body>
+<div id="ar-container" aria-label="Live rear camera view"></div>
+<div id="shade"></div>
+<header id="header"><h1>AU Mathematics Department AR Experience</h1><div id="status">Camera is not running</div></header>
+
+<section id="welcome">
+  <div id="sky-overlay" aria-hidden="true"></div>
+  <div id="falling-layer" aria-hidden="true">
+    <span class="fall flower" style="--left:2%;--duration:11s;--delay:0s">🌸</span>
+    <span class="fall flower" style="--left:7%;--duration:14s;--delay:-7s">🌺</span>
+    <span class="fall flower" style="--left:12%;--duration:17s;--delay:-14s">🌼</span>
+    <span class="fall flower" style="--left:17%;--duration:13s;--delay:-8s">🌷</span>
+    <span class="fall flower" style="--left:22%;--duration:19s;--delay:-9s">🌻</span>
+    <span class="fall flower" style="--left:27%;--duration:15s;--delay:-5s">💮</span>
+    <span class="fall flower" style="--left:32%;--duration:12s;--delay:-6s">🏵️</span>
+    <span class="fall flower" style="--left:37%;--duration:18s;--delay:-13s">🪷</span>
+    <span class="fall flower" style="--left:42%;--duration:16s;--delay:-8s">🌹</span>
+    <span class="fall flower" style="--left:47%;--duration:20s;--delay:-3s">🥀</span>
+    <span class="fall flower" style="--left:52%;--duration:13s;--delay:-5s">🌸</span>
+    <span class="fall flower" style="--left:57%;--duration:17s;--delay:-9s">🌺</span>
+    <span class="fall flower" style="--left:62%;--duration:14s;--delay:0s">🌼</span>
+    <span class="fall flower" style="--left:67%;--duration:21s;--delay:-7s">🌷</span>
+    <span class="fall flower" style="--left:72%;--duration:12s;--delay:-2s">🌻</span>
+    <span class="fall flower" style="--left:77%;--duration:18s;--delay:-15s">💮</span>
+    <span class="fall flower" style="--left:82%;--duration:15s;--delay:-7s">🏵️</span>
+    <span class="fall flower" style="--left:87%;--duration:19s;--delay:-5s">🪷</span>
+    <span class="fall flower" style="--left:92%;--duration:11s;--delay:-5s">🌹</span>
+    <span class="fall flower" style="--left:97%;--duration:16s;--delay:-5s">🌻</span>
+    <span class="fall equation" style="--left:5%;--duration:14s;--delay:0s">eⁱπ + 1 = 0</span>
+    <span class="fall equation" style="--left:15%;--duration:18s;--delay:-3s">∫₀¹ x² dx</span>
+    <span class="fall equation" style="--left:25%;--duration:12s;--delay:-10s">∑ₙ₌₁∞ 1/n²</span>
+    <span class="fall equation" style="--left:35%;--duration:20s;--delay:-1s">√(a²+b²)</span>
+    <span class="fall equation" style="--left:45%;--duration:15s;--delay:-3s">∂u/∂x</span>
+    <span class="fall equation" style="--left:55%;--duration:17s;--delay:-5s">limₓ→₀ sin x/x</span>
+    <span class="fall equation" style="--left:65%;--duration:13s;--delay:0s">a² − b²</span>
+    <span class="fall equation" style="--left:75%;--duration:19s;--delay:-18s">∇ · E</span>
+    <span class="fall equation" style="--left:85%;--duration:11s;--delay:-9s">ζ(s)</span>
+    <span class="fall equation" style="--left:95%;--duration:16s;--delay:-11s">f′(x) = 0</span>
+    <span class="fall number" style="--left:10%;--duration:14s;--delay:0s">2026</span>
+    <span class="fall number" style="--left:30%;--duration:18s;--delay:-1s">1729</span>
+    <span class="fall number" style="--left:50%;--duration:12s;--delay:-8s">314</span>
+    <span class="fall number" style="--left:70%;--duration:20s;--delay:-11s">108</span>
+    <span class="fall number" style="--left:90%;--duration:15s;--delay:-13s">2027</span>
+  </div>
+  <div id="math-background" aria-hidden="true">
+    <span class="math-eq eq1">e<sup>iπ</sup> + 1 = 0</span>
+    <span class="math-eq gold eq2">∫ e<sup>−x²</sup> dx = √π</span>
+    <span class="math-eq eq3">∇ · E = ρ / ε₀</span>
+    <span class="math-eq gold eq4">ζ(s) = Σ 1/n<sup>s</sup></span>
+    <span class="math-eq eq5">∂u/∂x = ∂v/∂y</span>
+    <span class="math-eq gold eq6">a² + b² = c²</span>
+    <span class="math-eq eq7">∀x ∈ ℝ</span>
+    <span class="math-eq gold eq8">lim f(x) = L</span>
+    <div class="math-diagram"></div>
+  </div>
+
+  <div id="card">
+    <h2>Welcome, Dear Juniors!</h2>
+    <p>We warmly invite you to our Freshers’ Party. Let’s celebrate friendship and create wonderful memories together!</p>
+    <button id="start" type="button">Start AR Experience</button>
+    <div id="error" role="alert" aria-live="polite"></div>
+  </div>
+</section>
+
+<div id="target-message">Point the camera at the full invitation card</div>
+<button id="stop" type="button">Stop camera</button>
+
+<script type="module">
+const container=document.querySelector("#ar-container");
+const welcome=document.querySelector("#welcome");
+const startButton=document.querySelector("#start");
+const stopButton=document.querySelector("#stop");
+const statusBox=document.querySelector("#status");
+const errorBox=document.querySelector("#error");
+const targetMessage=document.querySelector("#target-message");
+
+let THREE=null, MindARThree=null, mindar=null, isStarting=false, isRunning=false;
+
+function setStatus(message){statusBox.textContent=message;}
+function showError(message){
+ errorBox.style.display="block";errorBox.textContent=message;
+ welcome.style.display="flex";startButton.disabled=false;startButton.textContent="Try again";
+ isStarting=false;setStatus("AR could not start");
+}
+async function loadARLibraries(){
+ if(THREE&&MindARThree)return;
+ setStatus("Loading AR libraries…");
+ THREE=await import("three");
+ const module=await import("https://cdn.jsdelivr.net/npm/mind-ar@1.2.5/dist/mindar-image-three.prod.js");
+ MindARThree=module.MindARThree;
+ if(!MindARThree)throw new Error("MindAR library did not initialize. Check your internet connection.");
+}
+function makeFlower(parent,x,y,size,color,centerColor){
+ const flower=new THREE.Group();flower.position.set(x,y,.07);flower.scale.setScalar(size);parent.add(flower);
+ const stemCurve=new THREE.CatmullRomCurve3([
+  new THREE.Vector3(0,-.05,-.015),new THREE.Vector3(.015,-.25,-.005),
+  new THREE.Vector3(-.015,-.48,.005),new THREE.Vector3(.01,-.72,.015)
+ ]);
+ flower.add(new THREE.Mesh(new THREE.TubeGeometry(stemCurve,18,.014,8,false),new THREE.MeshBasicMaterial({color:0x287b3c})));
+ for(let i=0;i<10;i++){
+  const a=i*Math.PI*2/10;
+  const petal=new THREE.Mesh(new THREE.SphereGeometry(.105,18,12),new THREE.MeshBasicMaterial({color,side:THREE.DoubleSide}));
+  petal.scale.set(.78,1.72,.52);petal.position.set(Math.cos(a)*.145,Math.sin(a)*.145,.025);petal.rotation.z=a-Math.PI/2;flower.add(petal);
+ }
+ for(let i=0;i<7;i++){
+  const a=i*Math.PI*2/7+.22;
+  const petal=new THREE.Mesh(new THREE.SphereGeometry(.083,16,12),new THREE.MeshBasicMaterial({color:color===0xff70aa?0xffb1ce:0xffffff,side:THREE.DoubleSide}));
+  petal.scale.set(.82,1.42,.55);petal.position.set(Math.cos(a)*.095,Math.sin(a)*.095,.075);petal.rotation.z=a-Math.PI/2;flower.add(petal);
+ }
+ const center=new THREE.Mesh(new THREE.SphereGeometry(.078,20,16),new THREE.MeshBasicMaterial({color:centerColor}));
+ center.position.z=.14;flower.add(center);
+ return flower;
+}
+function addARArtwork(anchorGroup){
+ const group=new THREE.Group();anchorGroup.add(group);
+ const pink=makeFlower(group,-.29,.18,.82,0xff70aa,0xf7bd35);
+ const white=makeFlower(group,.30,.16,.76,0xfff1f7,0xffd54e);
+ const ring=new THREE.Mesh(new THREE.RingGeometry(.53,.545,64),new THREE.MeshBasicMaterial({color:0xf7d98b,transparent:true,opacity:.85,side:THREE.DoubleSide}));
+ ring.position.z=.035;group.add(ring);
+ const petalMaterial=new THREE.MeshBasicMaterial({color:0xff83b4,side:THREE.DoubleSide});
+ const petals=[[-.18,-.17,.15],[.13,-.23,.17],[.02,.29,.14],[.36,-.07,.15]].map((p,i)=>{
+  const obj=new THREE.Mesh(new THREE.SphereGeometry(.045,12,10),petalMaterial);
+  obj.scale.set(.8,1.6,.35);obj.position.set(p[0],p[1],p[2]);obj.userData.baseY=p[1];obj.userData.phase=i*1.4;group.add(obj);return obj;
+ });
+ return {pink,white,ring,petals};
+}
+
+// Phone tilt moves the falling layer. The first sensor reading is the neutral position.
+let orientationEnabled = false;
+let orientationPermissionAsked = false;
+let tiltBaseline = null;
+let lastTiltEvent = 0;
+
+function applyPhoneTilt(event) {
+ const gammaValue = event.gamma;
+ const betaValue = event.beta;
+ if (typeof gammaValue !== "number" || typeof betaValue !== "number") return;
+
+ lastTiltEvent = Date.now();
+ if (!tiltBaseline) {
+  tiltBaseline = { gamma: gammaValue, beta: betaValue };
+ }
+
+ // Measure movement relative to the phone's starting position.
+ const gamma = Math.max(-40, Math.min(40, gammaValue - tiltBaseline.gamma));
+ const beta = Math.max(-40, Math.min(40, betaValue - tiltBaseline.beta));
+
+ // Convert phone tilt into visible page movement.
+ const x = (gamma / 40) * 65;
+ const y = (beta / 40) * 42;
+
+ const layer = document.querySelector("#falling-layer");
+ if (layer) {
+  layer.style.setProperty("--phone-x", `${x.toFixed(1)}px`);
+  layer.style.setProperty("--phone-y", `${y.toFixed(1)}px`);
+  layer.style.transform = `translate3d(${x.toFixed(1)}px, ${y.toFixed(1)}px, 0)`;
+ }
+}
+
+async function enablePhoneTilt() {
+ if (orientationEnabled) return;
+ try {
+  // iOS Safari requires a permission prompt triggered by a button tap.
+  if (typeof DeviceOrientationEvent !== "undefined" &&
+      typeof DeviceOrientationEvent.requestPermission === "function" &&
+      !orientationPermissionAsked) {
+   orientationPermissionAsked = true;
+   const permission = await DeviceOrientationEvent.requestPermission();
+   if (permission !== "granted") {
+    console.warn("Motion permission was not granted.");
+    return;
+   }
+  }
+
+  if (!("DeviceOrientationEvent" in window)) {
+   console.warn("This browser does not expose device orientation sensors.");
+   return;
+  }
+
+  window.addEventListener("deviceorientation", applyPhoneTilt, true);
+  // Some Android browsers expose the absolute orientation event instead.
+  window.addEventListener("deviceorientationabsolute", applyPhoneTilt, true);
+  orientationEnabled = true;
+ } catch (error) {
+  console.warn("Phone tilt is unavailable:", error);
+ }
+}
+
+async function startAR(){
+ if(isStarting||isRunning)return;
+ isStarting=true;startButton.disabled=true;startButton.textContent="Starting camera…";
+ errorBox.style.display="none";errorBox.textContent="";
+ if(!window.isSecureContext||location.protocol!=="https:"){showError("Camera access requires HTTPS. Open your GitHub Pages address beginning with https://");return;}
+ if(!navigator.mediaDevices?.getUserMedia){showError("This browser does not support camera access. Please use updated Chrome.");return;}
+ try{
+  await loadARLibraries();
+  setStatus("Preparing invitation target…");
+  mindar=new MindARThree({container,imageTargetSrc:"./targets.mind",maxTrack:1,uiLoading:"no",uiScanning:"no",uiError:"no"});
+  const {renderer,scene,camera}=mindar;
+  renderer.setPixelRatio(Math.min(window.devicePixelRatio||1,2));
+  renderer.setSize(window.innerWidth,window.innerHeight);
+  renderer.setClearColor(0x000000,0);renderer.domElement.style.background="transparent";
+  const anchor=mindar.addAnchor(0);
+  const artwork=addARArtwork(anchor.group);
+  anchor.onTargetFound=()=>{targetMessage.textContent="Invitation detected! Enjoy the AR flowers 🌸";setStatus("Invitation detected — AR is active");};
+  anchor.onTargetLost=()=>{targetMessage.textContent="Point the camera at the full invitation card";setStatus("Looking for the invitation…");};
+  setStatus("Requesting camera permission…");
+  await mindar.start();
+  isRunning=true;isStarting=false;welcome.style.display="none";document.querySelector("#header").style.display="block";stopButton.style.display="block";targetMessage.style.display="block";
+  setStatus("Camera active — point at the invitation");
+  const clock=new THREE.Clock();
+  renderer.setAnimationLoop(()=>{
+   const t=clock.getElapsedTime();
+   artwork.ring.rotation.z+=.003;
+   artwork.pink.rotation.z=Math.sin(t*1.2)*.06;
+   artwork.white.rotation.z=Math.sin(t*1.1+1)*.06;
+   artwork.petals.forEach(p=>p.position.y=p.userData.baseY+Math.sin(t*1.5+p.userData.phase)*.07);
+   renderer.render(scene,camera);
+  });
+ }catch(error){
+  console.error("AR startup failed:",error);
+  try{if(mindar){mindar.renderer?.setAnimationLoop(null);await mindar.stop();}}catch(e){console.warn(e);}
+  mindar=null;isRunning=false;isStarting=false;container.replaceChildren();
+  let message=error?.message||String(error);
+  if(["NotAllowedError","PermissionDeniedError"].includes(error?.name))message="Camera permission was denied. Allow Camera for Chrome and this website, then try again.";
+  else if(["NotFoundError","DevicesNotFoundError"].includes(error?.name))message="No camera was found on this device.";
+  else if(["NotReadableError","TrackStartError"].includes(error?.name))message="The camera may be in use by another app. Close other camera apps and try again.";
+  else if(message.toLowerCase().includes("targets.mind"))message="Could not load targets.mind. Upload it beside index.html with the exact filename targets.mind.";
+  else if(message.toLowerCase().includes("fetch")||message.toLowerCase().includes("import"))message="An AR library could not be downloaded. Check your internet connection and reload.";
+  showError(message);
+ }
+}
+async function stopAR(){
+ if(!mindar)return;
+ try{mindar.renderer?.setAnimationLoop(null);await mindar.stop();}catch(error){console.warn("Stop error:",error);}
+ mindar=null;isRunning=false;container.replaceChildren();stopButton.style.display="none";targetMessage.style.display="none";
+ welcome.style.display="flex";document.querySelector("#header").style.display="none";startButton.disabled=false;startButton.textContent="Start AR Experience";setStatus("Camera stopped");
+}
+startButton.addEventListener("click",()=>{enablePhoneTilt();startAR();});
+stopButton.addEventListener("click",stopAR);
+window.addEventListener("resize",()=>{if(mindar?.renderer)mindar.renderer.setSize(window.innerWidth,window.innerHeight);});
+window.addEventListener("pagehide",()=>{if(mindar){try{mindar.stop();}catch(e){}}});
+</script>
+</body>
+</html>
